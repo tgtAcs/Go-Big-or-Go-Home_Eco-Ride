@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+    <header>
+        <h1>Uber Rideshare</h1>
+    </header>
+
+    <div class="button-container">
+        <a href="?tab=myRides">
+            <button id="myRidesButton">My Rides</button>
+        </a>
+        <a href="?tab=myTrips">
+            <button id="myTripsButton">My Trips</button>
+        </a>
+    </div>
+
+    <!-- Additional button -->
+    <button class="green additional-button" id="additionalButton">+ Find a ride</button>
+
+    <div class="content" id="myRidesContent">
+        <img src="image.jpg" alt="" class="centered-image">
+    </div>
+    
+    <div class="content" id="myTripsContent">
+        <img src="image2.jpg" alt="" class="centered-image">
+    </div>
+    
+
+    <script>
+        // JavaScript to handle button toggling and additional button text change
+        const urlParams = new URLSearchParams(window.location.search);
+        let tab = urlParams.get('tab');
+
+        // If there's no URL parameter, set the default tab to 'myRides'
+        if (!tab) {
+            tab = 'myRides';
+        }
+
+        // Set the initial active tab based on the URL parameter or default
+        const button = document.getElementById(tab + 'Button');
+        if (button) {
+            button.parentElement.classList.add('active');
+            document.getElementById(tab + 'Content').classList.add('active');
+        }
+
+        // Function to update the additional button text based on the active tab
+        function updateAdditionalButtonText(activeTab) {
+            const additionalButton = document.getElementById('additionalButton');
+            if (additionalButton) {
+                switch (activeTab) {
+                    case 'myRides':
+                        additionalButton.textContent = '+ Find a Ride';
+                        // Link to ridesearch.html when My Rides is pressed
+                        additionalButton.addEventListener('click', function () {
+                            window.location.href = 'ridesearch.html';
+                        });
+                        break;
+                    case 'myTrips':
+                        additionalButton.textContent = '+ Become a Driver';
+                        // Link to createtrip.html when My Trips is pressed
+                        additionalButton.addEventListener('click', function () {
+                            window.location.href = 'createtrip.html';
+                        });
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        // Handle click events on the three main buttons
+        document.querySelectorAll('.button-container a').forEach(link => {
+            link.addEventListener('click', () => {
+                const activeTab = link.getAttribute('href').substring(6); // Remove the '?tab=' prefix
+                updateAdditionalButtonText(activeTab);
+            });
+        });
+
+        // Initialize the additional button text
+        updateAdditionalButtonText(tab);
+
+        function getUrlVars() {
+            var vars = [], hash;
+            var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+
+            for (var i = 0; i < hashes.length; i++) {
+                hash = hashes[i].split('=');
+                hash[1] = unescape(hash[1]);
+                vars.push(hash[0]);
+                vars[hash[0]] = hash[1];
+            }
+
+            return vars;
+        }
+
+        window.onload = function () {
+            console.log(getUrlVars())
+        }
+    </script>
+</body>
+
+</html>

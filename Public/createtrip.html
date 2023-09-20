@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ride Search</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="https://kit.fontawesome.com/f4a636b23a.js" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+
+    <!-- Add Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-database-compat.js"></script>
+
+    <!-- Include Google Maps API with Places Library -->
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCvhk1EDZsbVaCZ4XPFFXHTwVXC9Epow4g&libraries=places&callback=initMap"
+        async defer></script>
+</head>
+
+<body>
+    <header>
+        <h1>Uber Rideshare</h1>
+    </header>
+
+    <!-- Input for user name -->
+    <div class="container">
+        <input type="text" id="userName" placeholder="Enter your Name">
+
+        <!-- Input boxes for starting and end points -->
+        <input class="location-input" type="text" id="startPoint" placeholder="Enter starting address">
+
+        <input class="location-input" type="text" id="endPoint" placeholder="Enter end address">
+
+        <p>
+            Start time
+        </p>
+
+        <!-- Input for starting time -->
+        <input type="time" id="startingTime" min="" required>
+
+        <p>
+            Lastest arrival time
+        </p>
+
+        <!-- Input for latest arriving time -->
+        <input type="time" id="latestArrivingTime" required>
+
+        <!-- Button to show the route -->
+        <button class="green map-input" id="Enter" onclick="calculateAndDisplayRoute()">Enter ⏎</button>
+        <!-- Button to go back to the home page (initially hidden) -->
+
+
+        <!-- Button to confirm the route (initially hidden) -->
+        <button class="green map-input" id="Confirm" style="display: none;" onclick="confirmAndSendData()">Confirm <i
+                class="fa-solid fa-check"></i></button>
+    </div>
+
+    <!-- Map container -->
+    <div id="map"></div>
+
+    <script>
+        let map;
+        let directionsService;
+        let directionsRenderer;
+        let initialStartPoint;
+        let initialEndPoint;
+
+
+        function confirmAndSendData() {
+            const userName = document.getElementById('userName').value;
+
+            // Use the initial addresses instead of the current values
+            const startPoint = initialStartPoint;
+            const endPoint = initialEndPoint;
+
+            const startingTime = document.getElementById('startingTime').value;
+            const latestArrivingTime = document.getElementById('latestArrivingTime').value;
+
+            // Call your writeDriverData function with the collected data
+            writeDriverData(userName, startPoint, endPoint, startingTime, latestArrivingTime);
+
+            console.log('Data sent to Firebase successfully!');
+
+            alert('Your Trip Has Been Added!');
+
+        }
+
+        function initMap() {
+            // Create a map centered at a specific location (Toronto, Ontario, Canada)
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 43.70, lng: -79.42 },
+                zoom: 12, // initial zoom level
+                disableDefaultUI: true // Remove default UI `ntrols
+            });
+
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer();
+            directionsRenderer.setMap(map);
+
+            // Initialize the Google Places Autocomplete for the start and end address fields
+            const startInput = document.getElementById('startPoint');
+            const endInput = document.getElementById('endPoint');
+
+            const autocompleteOptions = {
+                types: ['geocode'], // Only suggest geographic locations
+            };
+
+            const startAutocomplete = new google.maps.places.Autocomplete(startInput, autocompleteOptions);
+            const endAutocomplete = new google.maps.places.Autocomplete(endInput, autocompleteOptions);
+        }
+        function goToHomePage() {
+            window.location.href = 'index.html'; // Redirect to the home page
+        }
+
+        function calculateAndDisplayRoute() {
+            initialStartPoint = document.getElementById('startPoint').value;
+            initialEndPoint = document.getElementById('endPoint').value;
+
+            const startingTime = document.getElementById('startingTime').value;
+            const latestArrivingTime = document.getElementById('latestArrivingTime').value;
+
+            // Check if the latest arriving time is later than the starting time
+            if (startingTime >= latestArrivingTime) {
+                alert('Error: Latest Arriving Time must be later than Starting Time!');
+                return;
+            }
+
+            const request = {
+                origin: initialStartPoint,
+                destination: initialEndPoint,
+                travelMode: 'DRIVING' //driving mode only
+            };
+
+            directionsService.route(request, function (result, status) {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+
+                    // Display time and distance
+                    const route = result.routes[0];
+                    const time = route.legs[0].duration.text;
+                    const distance = route.legs[0].distance.text;
+
+                    // Show the "Confirm" button
+                    document.getElementById('Confirm').style.display = 'block';
+                } else {
+                    alert('Error: Unable to find a route.');
+                }
+            });
+        }
+
+        function confirmAndSendData() {
+            const userName = document.getElementById('userName').value;
+
+            // Use the initial addresses instead of the current values
+            const startPoint = initialStartPoint;
+            const endPoint = initialEndPoint;
+
+            const startingTime = document.getElementById('startingTime').value;
+            const latestArrivingTime = document.getElementById('latestArrivingTime').value;
+
+            // Call your writeDriverData function with the collected data
+            writeDriverData(userName, startPoint, endPoint, startingTime, latestArrivingTime);
+
+            // Hide the input fields, buttons
+            document.getElementById('userName').readOnly = true;
+            document.getElementById('startPoint').readOnly = true;
+            document.getElementById('endPoint').readOnly = true;
+            document.getElementById('startingTime').readOnly = true;
+            document.getElementById('latestArrivingTime').readOnly = true;
+
+
+            document.getElementById('Enter').style.display = 'none';
+            document.getElementById('Confirm').style.display = 'none';
+
+            // Show the "Go Back to Home Page" button
+
+            console.log('Data sent to Firebase successfully!');
+            alert('Your Trip Has Been Added!');
+        }
+
+
+
+        // Set the min attribute for the starting time input to ensure it's greater than or equal to the current time
+        document.getElementById('startingTime').min = getCurrentTime();
+
+        // Get the current time
+        function getCurrentTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        }
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAm9NTCx_rsx8Vr71zjF0PFhm3tysby9Ss",
+            authDomain: "uber-hackathon-de6f1.firebaseapp.com",
+            projectId: "uber-hackathon-de6f1",
+            storageBucket: "uber-hackathon-de6f1.appspot.com",
+            messagingSenderId: "519786424421",
+            appId: "1:519786424421:web:79e17980e11adf06093e8c",
+            measurementId: "G-YDC67MJQR5"
+        };
+
+        // Initialize Firebase app
+        const app = firebase.initializeApp(firebaseConfig);
+
+        // Function to write driver data to the Firebase Realtime Database
+        function writeDriverData(name, startingPos, endingPos, startingT, endingT) {
+            const db = firebase.database();
+            const reference = db.ref("drivers/" + name);
+
+            // Set the data in the database
+            reference.set({
+                starting_point: startingPos,
+                ending_point: endingPos,
+                starting_time: startingT,
+                latest_time: endingT
+            }).then(function () {
+                // After the data is successfully set, navigate to 'waiting.html'
+                window.location.href = 'matching.html';
+            });
+        }
+
+    </script>
+</body>
+
+</html>

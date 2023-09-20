@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Ride Status</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 3em;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Waiting for Passengers within your range...</h1>
+
+    <script>
+        // Function to redirect to matched.html
+        function redirectToMatched() {
+            window.location.href = 'matched.html';
+        }
+
+        // Function to redirect to drivernotfound.html
+        function redirectToDriverNotFound() {
+            window.location.href = 'drivernotfound.html';
+        }
+
+        const intervalId = setInterval(function() {
+            const randomPercentage = Math.random() * 100;
+            if (randomPercentage <= 2) {
+                clearInterval(intervalId);
+                redirectToMatched();}}, 1000);
+        setTimeout(function() {
+            clearInterval(intervalId);
+            redirectToDriverNotFound();
+        }, 60000);
+    </script>
+</body>
+</html>

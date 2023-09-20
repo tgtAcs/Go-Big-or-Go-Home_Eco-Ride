@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-database-compat.js"></script>
+
+</head>
+
+<body>
+    <header>
+        <h1>Uber Rideshare</h1>
+    </header>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Redirect Button</title>
+    </head>
+    <body>
+        <h1>Website Access</h1>
+        <p>If you can't access the website, click here to redirect:</p>
+        <button onclick="window.location.href='home.html?guest'">Redirect</button>
+    </body>
+    </html>
+    
+    <div class="login-buttons">
+        <div class="login-button-container">
+            <button class="login-button" onclick="openModal()">Log in</button>
+            <button class="login-button" onclick="openModal()">Sign up</button>
+            <div id="myModal" class="modal">
+                <div class="modal-content">
+                  <span class="close">&times;</span>
+                  <label for="email">Email:</label><br>
+                  <input type="email" id="email" name="email"><br>
+                  <label for="password">Password:</label><br>
+                  <input type="password" id="password" name="password">
+                  <button onclick="login()">Login/Signup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function login() {
+            var email = document.getElementById('email').value.replace('.', '')
+            var password = document.getElementById('password').value
+
+            // Your Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyAm9NTCx_rsx8Vr71zjF0PFhm3tysby9Ss",
+                authDomain: "uber-hackathon-de6f1.firebaseapp.com",
+                projectId: "uber-hackathon-de6f1",
+                storageBucket: "uber-hackathon-de6f1.appspot.com",
+                messagingSenderId: "519786424421",
+                appId: "1:519786424421:web:79e17980e11adf06093e8c",
+                measurementId: "G-YDC67MJQR5"
+            };
+
+            // Initialize Firebase app
+            const app = firebase.initializeApp(firebaseConfig);
+
+            const db = firebase.database();
+            const loginRef = db.ref("users/" + email);
+
+            loginRef.once('value', (snapshot) => {
+                var user = snapshot.val()
+                if (user) {
+                    if (user.password == password) {
+                        console.log('successful login')
+                        window.location.href = 'home.html?email=' + email
+                    }
+                    else {
+                        console.log('invalid password')
+                    }
+                }
+                else {
+                    const signupRef = db.ref("users/" + email);
+
+                    signupRef.set(
+                        {
+                            email: email,
+                            password: password
+                        }
+                    );
+                    console.log('new user created')
+                    window.location.href = 'index.html?email=' + email
+                }
+            });
+        }
+    </script>
+
+<script>
+    var modal = document.getElementById("myModal");
+    var span = document.getElementsByClassName("close")[0];
+    span.onclick = function() {
+      modal.style.display = "none";
+    }
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+    function openModal() {
+        modal.style.display = 'block';
+    }
+</script>
+<style>
+        .modal {
+          display: none; /* Hidden by default */
+          position: fixed; /* Stay in place */
+          z-index: 1; /* Sit on top */
+          padding-top: 100px; /* Location of the box */
+          left: 0;
+          top: 0;
+          width: 100%; /* Full width */
+          height: 100%; /* Full height */
+          overflow: auto; /* Enable scroll if needed */
+          background-color: rgb(0,0,0); /* Fallback color */
+          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+        .modal-content {
+          background-color: #fefefe;
+          margin: auto;
+          padding: 20px;
+          border: 1px solid #888;
+          width: 80%;
+        }
+        .close {
+          color: #aaaaaa;
+          float: right;
+          font-size: 28px;
+          font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+          color: #000;
+          text-decoration: none;
+          cursor: pointer;
+        }
+</style>
+</body>
+
+</html>

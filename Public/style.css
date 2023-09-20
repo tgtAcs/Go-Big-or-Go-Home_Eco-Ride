@@ -1,0 +1,165 @@
+/* style.css */
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: a, sans-serif;
+}
+
+header {
+    background-color: #000;
+    color: #fff;
+    display: flex;
+    flex-direction: row;
+    /* Adjust to horizontal layout */
+    align-items: center;
+    /* Center vertically */
+    padding: 20px;
+}
+
+header h1 {
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+    /* Prevent text from wrapping */
+}
+
+.button-container {
+    background-color: #fff;
+    /* Set a white background */
+    color: #000;
+    /* Text color */
+    display: flex;
+    width: 100%;
+    /* Make the buttons take up the whole width */
+    justify-content: space-between;
+    /* Distribute space evenly between buttons */
+    padding: 10px 0;
+}
+
+.button-container a {
+    text-decoration: none;
+    /* Remove underlines from links */
+    flex: 1;
+    /* Distribute available space evenly among links */
+}
+
+.button-container button {
+    background-color: #fff;
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    width: 100%;
+    /* Make each button take up the whole width of its container */
+    text-align: center;
+    box-shadow: none;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.button-container a.active button {
+    background-color: #F5F5F5;
+    box-shadow: 0px 0px 5px #888;
+}
+
+.content {
+    display: none;
+    padding: 20px;
+}
+
+.content.active {
+    display: block;
+}
+
+/* Additional button styles */
+.additional-button {
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    width: 100%;
+    /* Take up the whole width */
+    text-align: center;
+    margin-top: 20px;
+    /* Add some space below */
+}
+
+.login-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-button {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    margin: 10px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 18px;
+    width: max-content;
+    /* Adjust width based on content */
+    transition: background-color 0.3s;
+}
+
+.login-button:hover {
+    background-color: #333;
+}
+
+/* Additional styles for text inputs */
+input[type="time"],
+input[type="text"],
+.map-input {
+    border: none;
+    border-radius: 16px;
+    /* Rounded corners */
+    background-color: #dfdfdf;
+    /* Background color */
+    color: #424242;
+    /* Text color */
+    padding: 10px;
+    margin: 8px 0;
+    /* Vertical spacing of 16 pixels */
+}
+
+.location-input {
+    width: 20%;
+}
+
+.container {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    gap: 16px;
+    padding: 16px;
+}
+
+.green {
+    background-color: #81CE6F;
+    color: white;
+}
+
+#map {
+    margin: 16px;
+    margin-top: 0px;
+    height: calc(100vh - 180px);
+    border-radius: 16px;
+    /* Assuming the header has a height of 60 pixels */
+}
+
+/* Centered image with max-width */
+.centered-image {
+    display: block;
+    margin: 0 auto; /* This centers the image horizontally */
+    text-align: center; /* This centers the image within its container */
+    max-width: 100%; /* Limit the image's width to the container's width */
+    height: auto; /* Maintain the aspect ratio */
+}

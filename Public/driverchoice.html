@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accept or Decline</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="https://kit.fontawesome.com/f4a636b23a.js" crossorigin="anonymous"></script>
+    <!-- Include the Google Maps API with no UI -->
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCvhk1EDZsbVaCZ4XPFFXHTwVXC9Epow4g&libraries=geometry"></script>
+</head>
+
+<body>
+    <header>
+        <h1>Uber Rideshare</h1>
+    </header>
+
+    <div class="container">
+        <!-- Buttons for Accept and Decline -->
+        <button class="green map-input" id="acceptButton">Accept <i class="fa-solid fa-check"></i></button>
+        <button class="red map-input" id="declineButton">Decline <i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <!-- Map container -->
+    <div id="map"></div>
+
+    <script>
+        // Function to handle the "Accept" button click
+        function handleAcceptClick() {
+            // Redirect to Finalroute.html
+            window.location.href = "finalRoute.html";
+        }
+
+        // Function to handle the "Decline" button click
+        function handleDeclineClick() {
+            // Redirect to drivewait.html
+            window.location.href = "drivewait.html";
+        }
+
+        // Add a click event listener to the "Accept" button
+        document.getElementById("acceptButton").addEventListener("click", handleAcceptClick);
+
+        // Add a click event listener to the "Decline" button
+        document.getElementById("declineButton").addEventListener("click", handleDeclineClick);
+
+        // Initialize the map
+        function initMap() {
+            // Define the four points as location names
+            var locations = ["University of Toronto", "CN Tower", "Canadian National Exhibition Foundation", "St. Joseph's Health Centre"];
+
+            // Create the map with no UI
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 7,
+                disableDefaultUI: true // Disable all default UI elements
+            });
+
+            // Create a DirectionsService to calculate the route
+            var directionsService = new google.maps.DirectionsService();
+
+            // Create a DirectionsRenderer to display the route
+            var directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map
+            });
+
+            // Define the waypoints (in this case, the locations)
+            var waypoints = [];
+
+            for (var i = 0; i < locations.length; i++) {
+                waypoints.push({
+                    location: locations[i],
+                    stopover: true
+                });
+            }
+
+            // Create the request object
+            var request = {
+                origin: locations[0], // Starting point (Toronto)
+                destination: locations[locations.length - 1], // Ending point (Montreal)
+                waypoints: waypoints, // Waypoints (Waterloo and Ottawa)
+                travelMode: 'DRIVING'
+            };
+
+            // Use the DirectionsService to calculate the route
+            directionsService.route(request, function (response, status) {
+                if (status == 'OK') {
+                    // Display the route on the map
+                    directionsRenderer.setDirections(response);
+                }
+            });
+        }
+
+        // Initialize the map when the page loads
+        google.maps.event.addDomListener(window, 'load', initMap);
+    </script>
+</body>
+
+</html>
