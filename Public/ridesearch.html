@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ride Search</title>
     <link rel="stylesheet" type="text/css" href="style.css">
-    <script src="https://kit.fontawesome.com/f4a636b23a.js" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 
     <!-- Add Firebase SDKs -->
@@ -15,7 +14,7 @@
 
     <!-- Include Google Maps API with Places Library -->
     <script
-        src="https://maps.googleapis.com/maps/api/js?key=API&libraries=places&callback=initMap"
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCvhk1EDZsbVaCZ4XPFFXHTwVXC9Epow4g&libraries=places&callback=initMap"
         async defer></script>
 </head>
 
@@ -26,7 +25,7 @@
 
     <div class="container">
         <!-- Input for user name -->
-        <input type="text" id="userName" placeholder="Enter your Name">
+        <input type="text" id="userName" placeholder="Enter your username">
 
         <!-- Input boxes for starting and end points -->
         <input class="location-input" type="text" id="startPoint" placeholder="Enter starting address">
@@ -40,13 +39,15 @@
         <input type="time" id="latestArrivingTime" required>
 
         <!-- Button to show the route -->
-        <button class="green map-input" id="Enter" onclick="calculateAndDisplayRoute()">Enter ⏎</button>
-
+        <button class="green map-input" id="Enter" onclick="calculateAndDisplayRoute()">Enter</button>
+        <!-- Button to go back to the home page (initially hidden) -->
+        <button class="map-input" id="GoHome" style="display: none;" onclick="goToHomePage()">Cancel and Go Back to Main
+            page</button>
 
 
         <!-- Button to confirm the route (initially hidden) -->
-        <button class="green map-input" id="Confirm" style="display: none;" onclick="confirmAndSendData()">Confirm <i
-                class="fa-solid fa-check"></i></button>
+        <button class="green map-input" id="Confirm" style="display: none;"
+            onclick="confirmAndSendData()">Confirm</button>
     </div>
 
     <!-- Map container -->
@@ -83,7 +84,7 @@
             const endAutocomplete = new google.maps.places.Autocomplete(endInput, autocompleteOptions);
         }
         function goToHomePage() {
-            window.location.href = 'index.html'; // Redirect to the home page
+            window.location.href = 'matching.html'; // Redirect to the home page
         }
 
         function calculateAndDisplayRoute() {
@@ -137,9 +138,10 @@
             document.getElementById('Enter').style.display = 'none';
             document.getElementById('Confirm').style.display = 'none';
 
+            // Show the "Go Back to Home Page" button
+            document.getElementById('GoHome').style.display = 'block';
 
             console.log('Data sent to Firebase successfully!');
-
             alert('Your Trip Has Been Added!');
         }
 
@@ -153,13 +155,16 @@
 
         // Your Firebase configuration
         const firebaseConfig = {
-            API
+            apiKey: "AIzaSyAm9NTCx_rsx8Vr71zjF0PFhm3tysby9Ss",
+            authDomain: "uber-hackathon-de6f1.firebaseapp.com",
+            projectId: "uber-hackathon-de6f1",
+            storageBucket: "uber-hackathon-de6f1.appspot.com",
+            messagingSenderId: "519786424421",
+            appId: "1:519786424421:web:79e17980e11adf06093e8c",
+            measurementId: "G-YDC67MJQR5"
         };
 
         // Initialize Firebase app
-        const app = firebase.initializeApp(firebaseConfig);
-
-        // Function to write driver data to the Firebase Realtime Database
         function writeRiderData(name, startingPos, endingPos, endingT) {
             const db = firebase.database();
             const reference = db.ref("passenger/" + name);
@@ -173,8 +178,128 @@
                 // After the data is successfully set, navigate to 'waiting.html'
                 window.location.href = 'wait.html';
             });
+
+            const driverReference = db.ref("drivers/");
+
+            var minDistance;
+            var driver_start;
+            var driver_end;
+            var count = 1;
+
+            driverReference.once('value', (snapshot) => {
+                snapshot.forEach((data) => {
+                    var curDriverStart = data.val().starting_point
+                    var curDriverEnd = data.val().ending_point
+                    calculateDeviation(function (distanceDifference, timeDifference, startingPos, endingPos, curDriverStart, curDriverEnd) {
+                        var diff = distanceDifference
+                        if (minDistance) {
+                            if (minDistance > diff) {
+                                minDistance = diff
+                                driver_start = data.val().starting_point
+                                driver_end = data.val().ending_point
+                            }
+                        }
+                        else {
+                            minDistance = diff
+                            driver_start = data.val().starting_point
+                            driver_end = data.val().ending_point
+                        }
+
+                        if (snapshot.numChildren() == count) {
+                            console.log(minDistance)
+                            console.log(driver_start)
+                            console.log(driver_end)
+                            window.location.href = `test--2.html?driverStart=${driver_start.replace(' ', '%20')}&driverEnd=${driver_end.replace(' ', '%20')}&passengerStart=${startingPos.replace(' ', '%20')}&passengerEnd=${endingPos.replace(' ', '%20')}`;
+                        }
+                        count++
+                    }, startingPos, endingPos, curDriverStart, curDriverEnd);
+                    // console.log(diff)
+                    // var diff = calculateDeviation(startingPos, endingPos, data.val().starting_point, data.val().ending_point).distDif
+                    // if (minDistance) {
+                    //     if (minDistance > diff) {
+                    //         minDistance = diff
+                    //         driver_start = data.val().starting_point
+                    //         driver_end = data.val().ending_point
+                    //     }
+                    // }
+                    // else {
+                    //     minDistance = diff
+                    //     driver_start = data.val().starting_point
+                    //     driver_end = data.val().ending_point
+                    // }
+                    // console.log(minDistance)
+                    // console.log(driver_start)
+                    // console.log(driver_end)
+                });
+            });
         }
 
+        function calculateDeviation(callback, passenger_start, passenger_end, driver_start, driver_end) {
+
+            var directionsService = new google.maps.DirectionsService();
+            
+            var distanceDifference = '';
+            var timeDifference = '';
+
+            if (!map) {
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: { lat: 0, lng: 0 },
+                    zoom: 10,
+                    disableDefaultUI: true // Disable all default UI elements
+                });
+                directionsRenderer = new google.maps.DirectionsRenderer();
+                directionsRenderer.setMap(map);
+            }
+
+            var request = {
+                origin: driver_start,
+                destination: passenger_end, // Swap final destination with waypoint 2
+                waypoints: [
+                    { location: passenger_start, stopover: true },
+                    { location: driver_end, stopover: true } // Swap waypoint 2 with final destination
+                ],
+                travelMode: google.maps.TravelMode.DRIVING
+            };
+
+            directionsService.route(request, function (response, status) {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(response);
+
+                    // Display total distance and time
+                    var route = response.routes[0];
+                    var total_distance = 0;
+                    var total_duration = 0;
+                    for (var i = 0; i < route.legs.length; i++) {
+                        total_distance += route.legs[i].distance.value;
+                        total_duration += route.legs[i].duration.value;
+                    }
+
+                    // Calculate distance and time for the direct route with no waypoints
+                    var requestDirect = {
+                        origin: driver_start,
+                        destination: passenger_end, // Swap final destination with waypoint 2
+                        travelMode: google.maps.TravelMode.DRIVING
+                    };
+
+                    directionsService.route(requestDirect, function (responseDirect, statusDirect) {
+                        if (statusDirect === 'OK') {
+                            var routeDirect = responseDirect.routes[0];
+                            var distanceDifference = (total_distance - routeDirect.legs[0].distance.value) / 1000; // Convert to km
+                            var timeDifference = (total_duration - routeDirect.legs[0].duration.value) / 3600; // Convert to hours
+                            distanceDifference = distanceDifference.toFixed(2);
+                            timeDifference = timeDifference.toFixed(2);
+                            callback(distanceDifference, timeDifference, passenger_start, passenger_end, driver_start, driver_end)
+                        } else {
+                            alert('Error (Direct Route - No Waypoints): ' + statusDirect);
+                        }
+                    });
+                } else {
+                    alert('Error: ' + status);
+                }
+            });
+            // console.log(distanceDifference)
+            // return({timeDif: timeDifference, distDif: distanceDifference});
+        }
 
     </script>
 </body>
