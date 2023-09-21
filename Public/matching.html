@@ -1,47 +1,134 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Ride Status</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        h1 {
-            font-size: 3em;
-            text-align: center;
-        }
-    </style>
+    <title>Multiple Waypoints Distance and Time Calculator</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCvhk1EDZsbVaCZ4XPFFXHTwVXC9Epow4g&libraries=geometry"></script>
 </head>
 <body>
-    <h1>Waiting for Passengers within your range...</h1>
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between;">
+        <div style="width: 48%;">
+            <label for="driver_start">Driver's Start Point:</label>
+            <input type="text" id="driver_start" value="400 Keyrock Dr, Kanata, ON K2T 0G6">
+        </div>
+
+        <div style="width: 48%;">
+            <label for="passenger_start">Passenger's Start Point:</label>
+            <input type="text" id="passenger_start" value="5115 Kanata Ave., Kanata, ON K2K 3K5">
+        </div>
+
+        <div style="width: 48%;">
+            <label for="driver_end">Driver's End Point:</label>
+            <input type="text" id="driver_end" value="4 The Pkwy, Kanata, ON K2K 1Y4">
+        </div>
+
+        <div style="width: 48%;">
+            <label for="passenger_end">Passenger's End Point:</label>
+            <input type="text" id="passenger_end" value="Wellington St, Ottawa, ON K1A 0A9">
+        </div>
+    </div>
+
+    <button onclick="calculateMultipleWaypoints()">Calculate</button>
+
+    <div id="map" style="width: 100%; height: 400px;"></div>
+
+    <div>
+        <p><strong>Total Distance:</strong> <span id="total_distance"></span></p>
+        <p><strong>Total Time:</strong> <span id="total_time"></span></p>
+    </div>
+
+    <div>
+        <p><strong>Distance (Direct - No Waypoints):</strong> <span id="distance_direct"></span></p>
+        <p><strong>Time (Direct - No Waypoints):</strong> <span id="time_direct"></span></p>
+    </div>
+
+    <div>
+        <p><strong>Distance Difference:</strong> <span id="distance_difference"></span></p>
+        <p><strong>Time Difference:</strong> <span id="time_difference"></span></p>
+    </div>
 
     <script>
-        // Function to redirect to matched.html
-        function redirectToMatched() {
-            window.location.href = 'matched.html';
-        }
+        var map;
+        var directionsRenderer;
 
-        // Function to redirect to drivernotfound.html
-        function redirectToDriverNotFound() {
-            window.location.href = 'drivernotfound.html';
-        }
+        function calculateMultipleWaypoints() {
+            var driver_start = document.getElementById('driver_start').value;
+            var passenger_start = document.getElementById('passenger_start').value;
+            var driver_end = document.getElementById('driver_end').value;
+            var passenger_end = document.getElementById('passenger_end').value;
 
-        const intervalId = setInterval(function() {
-            const randomPercentage = Math.random() * 100;
-            if (randomPercentage <= 2) {
-                clearInterval(intervalId);
-                redirectToMatched();}}, 1000);
-        setTimeout(function() {
-            clearInterval(intervalId);
-            redirectToDriverNotFound();
-        }, 60000);
+            var directionsService = new google.maps.DirectionsService();
+
+            if (!map) {
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: { lat: 0, lng: 0 },
+                    zoom: 10,
+                    disableDefaultUI: true // Disable all default UI elements
+                });
+                directionsRenderer = new google.maps.DirectionsRenderer();
+                directionsRenderer.setMap(map);
+            }
+
+            var request = {
+                origin: driver_start,
+                destination: passenger_end, // Swap final destination with waypoint 2
+                waypoints: [
+                    { location: passenger_start, stopover: true },
+                    { location: driver_end, stopover: true } // Swap waypoint 2 with final destination
+                ],
+                travelMode: google.maps.TravelMode.DRIVING
+            };
+
+            directionsService.route(request, function (response, status) {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(response);
+
+                    // Display total distance and time
+                    var route = response.routes[0];
+                    var total_distance = 0;
+                    var total_duration = 0;
+                    for (var i = 0; i < route.legs.length; i++) {
+                        total_distance += route.legs[i].distance.value;
+                        total_duration += route.legs[i].duration.value;
+                    }
+                    document.getElementById('total_distance').textContent = (total_distance / 1000).toFixed(2) + ' km';
+                    document.getElementById('total_time').textContent = (total_duration / 3600).toFixed(2) + ' hours';
+
+                    // Calculate distance and time for the direct route with no waypoints
+                    var requestDirect = {
+                        origin: driver_start,
+                        destination: passenger_end, // Swap final destination with waypoint 2
+                        travelMode: google.maps.TravelMode.DRIVING
+                    };
+
+                    directionsService.route(requestDirect, function (responseDirect, statusDirect) {
+                        if (statusDirect === 'OK') {
+                            var routeDirect = responseDirect.routes[0];
+                            var distanceDirect = routeDirect.legs[0].distance.value / 1000; // Convert to km
+                            var durationDirect = routeDirect.legs[0].duration.value / 3600; // Convert to hours
+                            document.getElementById('distance_direct').textContent = distanceDirect.toFixed(2) + ' km';
+                            document.getElementById('time_direct').textContent = durationDirect.toFixed(2) + ' hours';
+
+                            // Calculate and display the difference in distance and time
+                            var distanceDifference = (total_distance - routeDirect.legs[0].distance.value) / 1000; // Convert to km
+                            var timeDifference = (total_duration - routeDirect.legs[0].duration.value) / 3600; // Convert to hours
+                            document.getElementById('distance_difference').textContent = distanceDifference.toFixed(2) + ' km';
+                            document.getElementById('time_difference').textContent = timeDifference.toFixed(2) + ' hours';
+
+                        } else {
+                            alert('Error (Direct Route - No Waypoints): ' + statusDirect);
+                        }
+                    });
+
+                    // Display coordinates for each point
+                    document.getElementById('driver_start_coords').textContent = route.legs[0].start_location.toString();
+                    document.getElementById('passenger_start_coords').textContent = route.legs[0].end_location.toString();
+                    document.getElementById('driver_end_coords').textContent = route.legs[1].start_location.toString();
+                    document.getElementById('passenger_end_coords').textContent = route.legs[1].end_location.toString();
+                } else {
+                    alert('Error: ' + status);
+                }
+            });
+        }
     </script>
 </body>
 </html>
